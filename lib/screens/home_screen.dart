@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_manage/screens/product_screen.dart';
 import 'package:inventory_manage/screens/sale_screen.dart';
+import 'package:inventory_manage/screens/scan_screen.dart';
 import 'package:inventory_manage/screens/statistic_screen.dart';
 import 'package:inventory_manage/screens/user_screen.dart';
 
@@ -60,6 +61,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 icon: Icons.bar_chart,
                 title: "Báo cáo",
                 color: Colors.purple,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const UserScreen()),
+                ),
+              ),
+              buildCard(
+                context,
+                icon: Icons.barcode_reader,
+                title: "Quét mã",
+                color: Colors.lightBlueAccent,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ScanScreen()),
+                ),
+              ),
+              buildCard(
+                context,
+                icon: Icons.account_circle,
+                title: "Tài khoản",
+                color: Colors.grey,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const UserScreen()),

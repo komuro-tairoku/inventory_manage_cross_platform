@@ -185,7 +185,7 @@ class _ProductScreenState extends State<ProductScreen> {
         child: Column(children: [Padding(padding: const EdgeInsets.all(16))]),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: isLoading ? null : save,
+        onPressed: () {},
         backgroundColor: Colors.green,
         child: Icon(
           Icons.add,
