@@ -1,5 +1,4 @@
-import 'dart:nativewrappers/_internal/vm/lib/math_patch.dart';
-
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:inventory_manage/models/category.dart';
 import 'package:inventory_manage/models/products.dart';
@@ -97,7 +96,11 @@ class _ProductScreenState extends State<ProductScreen> {
                 items: category.map((c) {
                   return DropdownMenuItem(value: c.id, child: Text(c.name));
                 }).toList(),
-                onChanged: (v) => selectedCategoryId = v,
+                onChanged: (v) {
+                  setState(() {
+                    selectedCategoryId = v;
+                  });
+                },
               ),
               TextField(
                 controller: costCtrl,
@@ -120,27 +123,44 @@ class _ProductScreenState extends State<ProductScreen> {
               ),
               const SizedBox(height: 16),
 
-              ElevatedButton(
-                onPressed: () async {
-                  final p = Products(
-                    id: product?.id,
-                    name: nameCtrl.text,
-                    companyName: companyCtrl.text,
-                    categoryId: selectedCategoryId,
-                    costPrice: double.tryParse(costCtrl.text) ?? 0,
-                    sellPrice: double.tryParse(sellCtrl.text) ?? 0,
-                    quantity: int.parse(quantityCtrl.text) ?? 0,
-                    image: imageCtrl.text,
-                  );
-                  if (product == null) {
-                    await productRepo.insert(p);
-                  } else {
-                    await productRepo.update(p);
-                  }
-                  loadProducts();
-                  Navigator.pop(context);
-                },
-                child: Text(product == null ? "Thêm" : "Cập nhật"),
+              // Bọc nút trong Padding để chỉnh vị trí
+              // Khoảng cách với ô nhập liệu phía trên
+              const SizedBox(height: 16),
+
+              Padding(
+                // Đẩy nút lên cao để tránh thanh điều hướng (Home Indicator)
+                padding: const EdgeInsets.only(bottom: 40.0),
+                child: Center(
+                  // Căn giữa nút thay vì kéo dài
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 40,
+                        vertical: 12,
+                      ), // Chỉnh độ to nhỏ của nút
+                    ),
+                    onPressed: () async {
+                      final p = Products(
+                        id: product?.id,
+                        name: nameCtrl.text,
+                        companyName: companyCtrl.text,
+                        categoryId: selectedCategoryId,
+                        costPrice: double.tryParse(costCtrl.text) ?? 0,
+                        sellPrice: double.tryParse(sellCtrl.text) ?? 0,
+                        quantity: int.tryParse(quantityCtrl.text) ?? 0,
+                        image: imageCtrl.text,
+                      );
+                      if (product == null) {
+                        await productRepo.insert(p);
+                      } else {
+                        await productRepo.update(p);
+                      }
+                      loadProducts();
+                      Navigator.pop(context);
+                    },
+                    child: Text(product == null ? "Thêm" : "Cập nhật"),
+                  ),
+                ),
               ),
             ],
           ),
@@ -181,11 +201,45 @@ class _ProductScreenState extends State<ProductScreen> {
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
       ),
-      body: SingleChildScrollView(
-        child: Column(children: [Padding(padding: const EdgeInsets.all(16))]),
-      ),
+      body: product.isEmpty
+          ? const Center(child: Text("Không có sản phẩm nào"))
+          : ListView.builder(
+              itemCount: product.length,
+              itemBuilder: (context, index) {
+                final p = product[index];
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  child: ListTile(
+                    title: Text(
+                      p.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      "Giá bán: ${p.sellPrice} | Số lượng: ${p.quantity}",
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: () => openForm(product: p),
+                          icon: const Icon(Icons.edit, color: Colors.blue),
+                        ),
+                        IconButton(
+                          onPressed: () => deleteProduct(p.id!),
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () => openForm(),
         backgroundColor: Colors.green,
         child: Icon(
           Icons.add,

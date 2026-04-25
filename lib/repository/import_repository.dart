@@ -7,17 +7,19 @@ class ImportRepository {
   Future<void> insert(Imports import) async {
     final db = await dbHelper.database;
 
-    Future<List<Imports>> getAll() async {
-      final db = await dbHelper.database;
-      final result = await db.query('imports');
-      return result.map((e) => Imports.fromMap(e)).toList();
-    }
+    await db.transaction((txn) async {
+      await txn.insert('imports', import.toMap());
 
-    await db.insert('imports', import.toMap());
+      await txn.rawUpdate(
+        'UPDATE products SET quantity = quantity + ? WHERE id = ?',
+        [import.quantity, import.productId],
+      );
+    });
+  }
 
-    await db.rawUpdate(
-      'UPDATE products SET quantity = quantity + ? WHERE id = ?',
-      [import.quantity, import.productId],
-    );
+  Future<List<Imports>> getAll() async {
+    final db = await dbHelper.database;
+    final result = await db.query('imports');
+    return result.map((e) => Imports.fromMap(e)).toList();
   }
 }

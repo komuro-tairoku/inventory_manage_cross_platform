@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inventory_manage/screens/home_screen.dart';
+import 'package:inventory_manage/routes/app_routes.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +18,12 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       title: 'Inventory Manage',
       debugShowCheckedModeBanner: false,
-      home: HomeScreen(),
+      // ❌ Bỏ: home: const HomeScreen(),
+      initialRoute: '/', // ← thêm dòng này
+      routes: {
+        '/': (_) => const HomeScreen(), // ← thêm route cho home
+        ...AppRoutes.routes, // ← spread các route còn lại
+      },
       builder: (context, child) {
         final mediaQuery = MediaQuery.of(context);
         return MediaQuery(
