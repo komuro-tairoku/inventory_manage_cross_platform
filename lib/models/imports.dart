@@ -1,6 +1,4 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'dart:convert';
-
 class Imports {
   int? id;
   int productId;
@@ -26,12 +24,24 @@ class Imports {
   }
 
   factory Imports.fromMap(Map<String, dynamic> map) {
+    int? readInt(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toInt();
+      return int.tryParse(value.toString());
+    }
+
+    double readDouble(dynamic value) {
+      if (value == null) return 0;
+      if (value is num) return value.toDouble();
+      return double.tryParse(value.toString()) ?? 0;
+    }
+
     return Imports(
-      id: map['id'],
-      productId: map['productId'],
-      quantity: map['quantity'] ?? 0,
-      importPrice: map['importPrice']?.toDouble() ?? 0,
-      date: map['date'],
+      id: readInt(map['id']),
+      productId: readInt(map['productId']) ?? 0,
+      quantity: readInt(map['quantity']) ?? 0,
+      importPrice: readDouble(map['importPrice']),
+      date: map['date']?.toString() ?? '',
     );
   }
 }

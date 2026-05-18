@@ -1,0 +1,113 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isText(value) {
+      return value is string;
+    }
+
+    function isOptionalText(value) {
+      return value == null || value is string;
+    }
+
+    function isNumber(value) {
+      return value is int || value is float;
+    }
+
+    function isOptionalNumber(value) {
+      return value == null || isNumber(value);
+    }
+
+    function isOptionalInt(value) {
+      return value == null || value is int;
+    }
+
+    function isOptionalTimestampOrText(value) {
+      return value == null || value is timestamp || value is string;
+    }
+
+    function validProduct(data) {
+      return data.keys().hasOnly([
+          'id',
+          'barcode',
+          'name',
+          'company_name',
+          'specifications',
+          'image',
+          'gallery_images',
+          'expiry_date',
+          'manufacturing_date',
+          'quantity',
+          'costPrice',
+          'sellPrice',
+          'categoryId',
+          'createAt',
+        ])
+        && data.id is int
+        && isText(data.barcode)
+        && isText(data.name)
+        && isText(data.company_name)
+        && isOptionalText(data.specifications)
+        && isText(data.image)
+        && data.gallery_images is list
+        && isText(data.expiry_date)
+        && isText(data.manufacturing_date)
+        && data.quantity is int
+        && isOptionalNumber(data.costPrice)
+        && isOptionalNumber(data.sellPrice)
+        && isOptionalInt(data.categoryId)
+        && isOptionalTimestampOrText(data.createAt);
+    }
+
+    function validCategory(data) {
+      return data.keys().hasOnly(['id', 'name', 'icon', 'color'])
+        && data.id is int
+        && isText(data.name)
+        && isOptionalText(data.icon)
+        && isOptionalText(data.color);
+    }
+
+    function validImport(data) {
+      return data.keys().hasOnly(['id', 'productId', 'quantity', 'importPrice', 'date'])
+        && data.id is int
+        && data.productId is int
+        && data.quantity is int
+        && isNumber(data.importPrice)
+        && isOptionalTimestampOrText(data.date);
+    }
+
+    function validSale(data) {
+      return data.keys().hasOnly(['id', 'productId', 'quantity', 'sellPrice', 'profit', 'date'])
+        && data.id is int
+        && data.productId is int
+        && data.quantity is int
+        && isNumber(data.sellPrice)
+        && isNumber(data.profit)
+        && isOptionalTimestampOrText(data.date);
+    }
+
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if true;
+    }
+
+    match /category/{categoryId} {
+      allow read: if true;
+      allow create, update: if validCategory(request.resource.data);
+      allow delete: if true;
+    }
+
+    match /imports/{importId} {
+      allow read: if true;
+      allow create, update: if validImport(request.resource.data);
+      allow delete: if true;
+    }
+
+    match /sales/{saleId} {
+      allow read: if true;
+      allow create, update: if validSale(request.resource.data);
+      allow delete: if true;
+    }
+  }
+}

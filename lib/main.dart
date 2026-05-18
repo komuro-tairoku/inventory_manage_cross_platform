@@ -1,10 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:inventory_manage/screens/home_screen.dart';
-import 'package:inventory_manage/routes/app_routes.dart';
-import 'firebase_options.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:inventory_manage/routes/app_routes.dart';
+import 'package:inventory_manage/screens/home_screen.dart';
+import 'package:flutter/foundation.dart';
 
-void main() {
+import 'firebase_options.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  if (!kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS)) {
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: kDebugMode
+          ? AndroidProvider.debug
+          : AndroidProvider.playIntegrity,
+      appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.appAttest,
+    );
+  }
   runApp(const MyApp());
 }
 

@@ -1,43 +1,59 @@
-import 'package:inventory_manage/database/db_helper.dart';
-import 'package:inventory_manage/models/products.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:inventory_manage/database/firestore_service.dart';
+import 'package:inventory_manage/models/product.dart';
 
 class ProductRepository {
-  final dbHelper = DBHelper();
-
-  Future<List<Products>> getAll() async {
-    final db = await dbHelper.database;
-    final result = await db.query('products');
-    return result.map((e) => Products.fromMap(e)).toList();
+  Future<List<Product>> getAll() async {
+    final result = await FirestoreService.collection(
+      'products',
+    ).orderBy('id').get();
+    return result.docs.map((e) => Product.fromMap(e.data())).toList();
   }
 
-  Future<Products?> getById(int id) async {
-    final db = await dbHelper.database;
-    final result = await db.query('products', where: 'id = ?', whereArgs: [id]);
+  Future<Product?> getById(int id) async {
+    final result = await FirestoreService.collection(
+      'products',
+    ).doc(id.toString()).get();
 
-    if (result.isNotEmpty) {
-      return Products.fromMap(result.first);
+    if (result.exists) {
+      return Product.fromMap(result.data()!);
     }
 
     return null;
   }
 
-  Future<void> insert(Products product) async {
-    final db = await dbHelper.database;
-    await db.insert('products', product.toMap());
+  Future<Product?> getByBarcode(String barcode) async {
+    final result = await FirestoreService.collection(
+      'products',
+    ).where('barcode', isEqualTo: barcode).limit(1).get();
+
+    if (result.docs.isEmpty) {
+      return null;
+    }
+
+    return Product.fromMap(result.docs.first.data());
   }
 
-  Future<void> update(Products product) async {
-    final db = await dbHelper.database;
-    await db.update(
+  Future<void> insert(Product product) async {
+    final id = product.id ?? await FirestoreService.nextId('products');
+    await FirestoreService.collection(
       'products',
-      product.toMap(),
-      where: 'id = ?',
-      whereArgs: [product.id],
-    );
+    ).doc(id.toString()).set({...product.toMap(), 'id': id});
+  }
+
+  Future<void> update(Product product) async {
+    final id = product.id;
+    if (id == null) {
+      throw ArgumentError('Product id is required for update');
+    }
+
+    await FirestoreService.collection('products').doc(id.toString()).set({
+      ...product.toMap(),
+      'id': id,
+    }, SetOptions(merge: true));
   }
 
   Future<void> delete(int id) async {
-    final db = await dbHelper.database;
-    await db.delete('products', where: 'id = ?', whereArgs: [id]);
+    await FirestoreService.collection('products').doc(id.toString()).delete();
   }
 }

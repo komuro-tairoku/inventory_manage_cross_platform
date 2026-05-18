@@ -1,25 +1,33 @@
-import 'package:inventory_manage/database/db_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:inventory_manage/database/firestore_service.dart';
 import 'package:inventory_manage/models/imports.dart';
 
 class ImportRepository {
-  final dbHelper = DBHelper();
-
   Future<void> insert(Imports import) async {
-    final db = await dbHelper.database;
+    final id = import.id ?? await FirestoreService.nextId('imports');
+    final db = FirestoreService.instance;
+    final importRef = db.collection('imports').doc(id.toString());
+    final productRef = db
+        .collection('products')
+        .doc(import.productId.toString());
 
-    await db.transaction((txn) async {
-      await txn.insert('imports', import.toMap());
+    await db.runTransaction((txn) async {
+      final productSnap = await txn.get(productRef);
+      if (!productSnap.exists) {
+        throw Exception('Không tìm thấy sản phẩm');
+      }
 
-      await txn.rawUpdate(
-        'UPDATE products SET quantity = quantity + ? WHERE id = ?',
-        [import.quantity, import.productId],
-      );
+      final currentQuantity =
+          (productSnap.data()?['quantity'] as num?)?.toInt() ?? 0;
+      txn.set(importRef, {...import.toMap(), 'id': id});
+      txn.update(productRef, {'quantity': currentQuantity + import.quantity});
     });
   }
 
   Future<List<Imports>> getAll() async {
-    final db = await dbHelper.database;
-    final result = await db.query('imports');
-    return result.map((e) => Imports.fromMap(e)).toList();
+    final result = await FirestoreService.collection(
+      'imports',
+    ).orderBy('id').get();
+    return result.docs.map((e) => Imports.fromMap(e.data())).toList();
   }
 }

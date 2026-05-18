@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/products.dart';
+import '../models/product.dart';
 import '../models/imports.dart';
 import '../repository/product_repository.dart';
 import '../repository/import_repository.dart';
@@ -15,8 +15,8 @@ class _ImportScreenState extends State<ImportScreen> {
   final productRepo = ProductRepository();
   final importRepo = ImportRepository();
 
-  List<Products> products = [];
-  Products? selectedProduct;
+  List<Product> products = [];
+  Product? selectedProduct;
 
   final quantityCtrl = TextEditingController();
   final priceCtrl = TextEditingController();
@@ -395,8 +395,8 @@ class _ImportScreenState extends State<ImportScreen> {
         border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       child: DropdownButtonHideUnderline(
-        child: DropdownButtonFormField<Products>(
-          value: selectedProduct,
+        child: DropdownButtonFormField<Product>(
+          initialValue: selectedProduct,
           decoration: const InputDecoration(border: InputBorder.none),
           hint: const Text(
             "Chọn sản phẩm",

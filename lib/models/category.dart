@@ -11,9 +11,15 @@ class Category {
   }
 
   factory Category.fromMap(Map<String, dynamic> map) {
+    int? readInt(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toInt();
+      return int.tryParse(value.toString());
+    }
+
     return Category(
-      id: map['id'],
-      name: map['name'],
+      id: readInt(map['id']),
+      name: map['name'] ?? '',
       icon: map['icon'],
       color: map['color'],
     );

@@ -1,22 +1,23 @@
-import 'package:inventory_manage/database/db_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:inventory_manage/database/firestore_service.dart';
 import 'package:inventory_manage/models/category.dart';
 
 class CategoryRepository {
-  final dbHelper = DBHelper();
-
   Future<List<Category>> getAll() async {
-    final db = await dbHelper.database;
-    final result = await db.query('category');
-    return result.map((e) => Category.fromMap(e)).toList();
+    final result = await FirestoreService.collection(
+      'category',
+    ).orderBy('id').get();
+    return result.docs.map((e) => Category.fromMap(e.data())).toList();
   }
 
   Future<void> insert(Category category) async {
-    final db = await dbHelper.database;
-    await db.insert('category', category.toMap());
+    final id = category.id ?? await FirestoreService.nextId('category');
+    await FirestoreService.collection(
+      'category',
+    ).doc(id.toString()).set({...category.toMap(), 'id': id});
   }
 
   Future<void> delete(int id) async {
-    final db = await dbHelper.database;
-    await db.delete('category', where: 'id = ?', whereArgs: [id]);
+    await FirestoreService.collection('category').doc(id.toString()).delete();
   }
 }
