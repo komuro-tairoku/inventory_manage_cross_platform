@@ -123,15 +123,11 @@ class _ProductScreenState extends State<ProductScreen> {
               ),
               const SizedBox(height: 16),
 
-              // Bọc nút trong Padding để chỉnh vị trí
-              // Khoảng cách với ô nhập liệu phía trên
               const SizedBox(height: 16),
 
               Padding(
-                // Đẩy nút lên cao để tránh thanh điều hướng (Home Indicator)
                 padding: const EdgeInsets.only(bottom: 40.0),
                 child: Center(
-                  // Căn giữa nút thay vì kéo dài
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
